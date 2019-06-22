@@ -24,7 +24,6 @@ class TextAreaViewController: UIViewController, UITextFieldDelegate, UITextViewD
     var document: Document?
     var isExisting = false
     var indexPath: Int?
-    let dateFormatter = DateFormatter()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,9 +42,7 @@ class TextAreaViewController: UIViewController, UITextFieldDelegate, UITextViewD
         titleName.delegate = self
         textArea.delegate = self
         self.title = titleName.text
-        
-        dateFormatter.dateStyle = .medium
-        dateFormatter.timeStyle = .medium
+
     }
 
     override func didReceiveMemoryWarning() {
@@ -89,13 +86,10 @@ class TextAreaViewController: UIViewController, UITextFieldDelegate, UITextViewD
                 
                 if let moc = managedObjectContext {
                     let document = Document(context: moc)
-                    print("doc modified")
-
                     document.name = docName
                     document.body = docBody
                     document.size = Int64(textArea.text.count)
                     document.modified = Date()
-                    print("doc modified \(String(describing: document.modified))")
 
                     saveToCoreData(){
                         self.navigationController?.popViewController(animated: true)

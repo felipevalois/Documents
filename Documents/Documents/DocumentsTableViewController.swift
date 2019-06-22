@@ -12,7 +12,8 @@ import CoreData
 class DocumentsTableViewController: UITableViewController{
     
     var documents = [Document]()
-
+    let dateFormatter = DateFormatter()
+    
     
     var managedObjectContext: NSManagedObjectContext?{
         return (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
@@ -21,6 +22,9 @@ class DocumentsTableViewController: UITableViewController{
     override func viewDidLoad() {
         super.viewDidLoad()
         retrieveDocuments()
+        
+        dateFormatter.dateStyle = .medium
+        dateFormatter.timeStyle = .medium
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -41,12 +45,18 @@ class DocumentsTableViewController: UITableViewController{
         return documents.count
     }
 
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 80.0;
+    }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "DocumentsTableViewCell", for: indexPath) as! DocumentsTableViewCell
         
         let document: Document = documents[indexPath.row]
-        cell.configureCell(document: document)
+        cell.title.text = document.name
+        cell.size.text = "Size: " + String(document.size)
+        cell.modified.text = "Modified: " + dateFormatter.string(from: document.modified!)
+        print("\(document.modified!) from tableviewcontroller")
         cell.backgroundColor = UIColor.clear
 
         return cell
@@ -56,13 +66,13 @@ class DocumentsTableViewController: UITableViewController{
         return true
     }
  
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // Delete the row from the data source
+//    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+//        if editingStyle == .delete {
+//            // Delete the row from the data source
 //            tableView.deleteRows(at: [indexPath], with: .fade)
-        }
-        tableView.reloadData()
-    }
+//        }
+//        tableView.reloadData()
+//    }
 
     override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
         let delete = UITableViewRowAction(style: .destructive, title: "DELETE") { (action, indexPath) in
@@ -80,10 +90,7 @@ class DocumentsTableViewController: UITableViewController{
             
             tableView.deleteRows(at: [indexPath], with: .fade)
             tableView.reloadData()
-            
         }
-        
-        
         return [delete]
     }
  
@@ -101,7 +108,6 @@ class DocumentsTableViewController: UITableViewController{
     }
     
     func fetchDocsFromCoreData(completion: @escaping([Document]?) -> Void){
-        
         managedObjectContext?.perform {
             var documents = [Document]()
             let request: NSFetchRequest<Document> = Document.fetchRequest()
@@ -127,16 +133,13 @@ class DocumentsTableViewController: UITableViewController{
                 textAreaViewController.indexPath = indexPath.row
                 textAreaViewController.isExisting = false
                 textAreaViewController.document = selectedDoc
-                
             }
             
         }
             
         else if segue.identifier == "addItem" {
-            print("User added a new note.")
             
         }
-        
     }
     
     
