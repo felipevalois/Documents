@@ -51,7 +51,6 @@
                                         <constraint firstItem="DCd-wo-pLU" firstAttribute="leading" secondItem="4Mx-yB-g4s" secondAttribute="leading" constant="16" id="Nag-OX-afW"/>
                                         <constraint firstItem="25z-w8-tnl" firstAttribute="leading" secondItem="4Mx-yB-g4s" secondAttribute="leading" constant="16" id="aBW-1I-o0h"/>
                                         <constraint firstItem="AFZ-Vq-VWF" firstAttribute="trailing" secondItem="DCd-wo-pLU" secondAttribute="trailing" id="dNA-jr-eQg"/>
-                                        <constraint firstItem="25z-w8-tnl" firstAttribute="leading" secondItem="4Mx-yB-g4s" secondAttribute="leadingMargin" id="nSx-mb-Azk"/>
                                         <constraint firstItem="AFZ-Vq-VWF" firstAttribute="top" secondItem="DCd-wo-pLU" secondAttribute="bottom" constant="10" id="pqz-6e-HMm"/>
                                         <constraint firstItem="AFZ-Vq-VWF" firstAttribute="leading" secondItem="DCd-wo-pLU" secondAttribute="leading" id="vak-5K-UtC"/>
                                         <constraint firstAttribute="trailing" secondItem="DCd-wo-pLU" secondAttribute="trailing" id="w1d-vn-6nJ"/>

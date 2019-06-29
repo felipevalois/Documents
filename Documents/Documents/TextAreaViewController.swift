@@ -19,8 +19,6 @@ class TextAreaViewController: UIViewController, UITextFieldDelegate, UITextViewD
         return (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     }
     
-    var docsFetchedResultsController: NSFetchedResultsController<Document>!
-    var documents = [Document]()
     var document: Document?
     var isExisting = false
     var indexPath: Int?
@@ -32,13 +30,11 @@ class TextAreaViewController: UIViewController, UITextFieldDelegate, UITextViewD
         if let document = document {
             titleName.text = document.name
             textArea.text = document.body
-            
         }
         if titleName.text != "" {
             isExisting = true
         }
         
-        //delegates
         titleName.delegate = self
         textArea.delegate = self
         self.title = titleName.text
@@ -51,22 +47,6 @@ class TextAreaViewController: UIViewController, UITextFieldDelegate, UITextViewD
     
     @IBAction func SetTitleName(_ sender: Any) {
         self.title = titleName.text
-        
-    }
-    
-    
-    //CoreData
-    func saveToCoreData(completion: @escaping() -> Void){
-        managedObjectContext!.perform{
-            do{
-                try self.managedObjectContext?.save()
-                completion()
-                print("Doc saved to core data")
-            }
-            catch let error {
-                print("Could not save doc to CoreData: \(error.localizedDescription)")
-            }
-        }
     }
     
     @IBAction func SaveDocument(_ sender: UIBarButtonItem) {
@@ -83,14 +63,14 @@ class TextAreaViewController: UIViewController, UITextFieldDelegate, UITextViewD
             if(!isExisting){
                 let docName = titleName.text
                 let docBody = textArea.text
-                
+            
                 if let moc = managedObjectContext {
                     let document = Document(context: moc)
                     document.name = docName
                     document.body = docBody
                     document.size = Int64(textArea.text.count)
                     document.modified = Date()
-
+            
                     saveToCoreData(){
                         self.navigationController?.popViewController(animated: true)
                     }
@@ -98,14 +78,14 @@ class TextAreaViewController: UIViewController, UITextFieldDelegate, UITextViewD
             }
             else if (isExisting){
                 let document = self.document
-                
+            
                 let managedObject = document
                 managedObject!.setValue(titleName.text, forKey: "name")
                 managedObject!.setValue(textArea.text, forKey: "body")
                 managedObject!.setValue(Int64(textArea.text.count), forKey: "size")
                 managedObject!.setValue(Date(), forKey: "modified")
             
-
+            
                 do{
                     try context.save()
                     saveToCoreData(){
@@ -118,23 +98,21 @@ class TextAreaViewController: UIViewController, UITextFieldDelegate, UITextViewD
             }
         }
     }
- 
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        textField.resignFirstResponder()
-        return false
-    }
     
-    func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-        if(text == "\n"){
-            textView.resignFirstResponder()
-            return false
+    //CoreData helper function
+    func saveToCoreData(completion: @escaping() -> Void){
+        managedObjectContext!.perform{
+            do{
+                try self.managedObjectContext?.save()
+                completion()
+                print("Doc saved to core data")
+            }
+            catch let error {
+                print("Could not save doc to CoreData: \(error.localizedDescription)")
+            }
         }
-        
-        return true
     }
-
-    
-    
-    
-
+ 
 }
+
+

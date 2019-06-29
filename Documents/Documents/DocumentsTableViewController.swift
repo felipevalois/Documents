@@ -9,11 +9,11 @@
 import UIKit
 import CoreData
 
-class DocumentsTableViewController: UITableViewController{
-    
+class DocumentsTableViewController: UITableViewController, UISearchResultsUpdating, UISearchBarDelegate{
+
     var documents = [Document]()
     let dateFormatter = DateFormatter()
-    
+    var searchController: UISearchController?
     
     var managedObjectContext: NSManagedObjectContext?{
         return (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
@@ -21,7 +21,15 @@ class DocumentsTableViewController: UITableViewController{
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        retrieveDocuments()
+        
+        searchController = UISearchController(searchResultsController: nil)
+        searchController?.searchResultsUpdater = self
+        searchController?.obscuresBackgroundDuringPresentation = false
+        searchController?.searchBar.placeholder = "Search Documents"
+
+        navigationItem.searchController = searchController
+        definesPresentationContext = true
+        searchController?.searchBar.delegate = self
         
         dateFormatter.dateStyle = .medium
         dateFormatter.timeStyle = .medium
@@ -29,22 +37,48 @@ class DocumentsTableViewController: UITableViewController{
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)
-        retrieveDocuments()
+        fetchDocuments(searchString: "")
     }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
+    
+    func updateSearchResults(for searchController: UISearchController) {
+        if let searchString = searchController.searchBar.text {
+            fetchDocuments(searchString: searchString)
+        }
+    }
 
-    // MARK: - Table view data source
+    func fetchDocuments(searchString: String) {
+        managedObjectContext?.perform {
+            let request: NSFetchRequest<Document> = Document.fetchRequest()
+            request.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
+            
+            do{
+                if searchString != "" {
+                    request.predicate = NSPredicate(format: "name contains[c] %@ OR body contains[c] %@", searchString, searchString)
+                }
+                self.documents = try self.managedObjectContext!.fetch(request)
+                self.tableView.reloadData()
+            }
+            catch{
+                print("Could not fetch documents from Core Data :\(error.localizedDescription)")
+            }
+        }
+    }
+    
+
+    
+    // MARK: - Table view functions
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
-
+    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return documents.count
     }
-
+    
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 80.0;
     }
@@ -54,10 +88,9 @@ class DocumentsTableViewController: UITableViewController{
         
         let document: Document = documents[indexPath.row]
         cell.title.text = document.name
-        cell.size.text = "Size: " + String(document.size)
+        let tempSize = String(document.size)
+        cell.size.text = "Size: " + tempSize + " bytes"
         cell.modified.text = "Modified: " + dateFormatter.string(from: document.modified!)
-        print("\(document.modified!) from tableviewcontroller")
-        cell.backgroundColor = UIColor.clear
 
         return cell
     }
@@ -65,15 +98,8 @@ class DocumentsTableViewController: UITableViewController{
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         return true
     }
- 
-//    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-//        if editingStyle == .delete {
-//            // Delete the row from the data source
-//            tableView.deleteRows(at: [indexPath], with: .fade)
-//        }
-//        tableView.reloadData()
-//    }
-
+    
+    //DELETE
     override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
         let delete = UITableViewRowAction(style: .destructive, title: "DELETE") { (action, indexPath) in
             
@@ -93,34 +119,6 @@ class DocumentsTableViewController: UITableViewController{
         }
         return [delete]
     }
- 
-    
-    
-    func retrieveDocuments(){
-        managedObjectContext?.perform {
-            self.fetchDocsFromCoreData{ (documents) in
-                if let documents = documents {
-                    self.documents = documents
-                    self.tableView.reloadData()
-                }
-            }
-        }
-    }
-    
-    func fetchDocsFromCoreData(completion: @escaping([Document]?) -> Void){
-        managedObjectContext?.perform {
-            var documents = [Document]()
-            let request: NSFetchRequest<Document> = Document.fetchRequest()
-            
-            do{
-                documents = try self.managedObjectContext!.fetch(request)
-                completion(documents)
-            }
-            catch{
-                print("Could not fetch documents from Core Data :\(error.localizedDescription)")
-            }
-        }
-    }
     
     // MARK: - Navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -134,13 +132,10 @@ class DocumentsTableViewController: UITableViewController{
                 textAreaViewController.isExisting = false
                 textAreaViewController.document = selectedDoc
             }
-            
         }
             
         else if segue.identifier == "addItem" {
             
         }
     }
-    
-    
 }
